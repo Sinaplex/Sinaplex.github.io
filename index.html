@@ -1,483 +1,1422 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<!doctype html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b16">
-  <meta name="description" content="Sina Plex — توسعه‌دهنده بازی با Unity و برنامه‌نویس C#">
-  <title>Sina Plex | Unity Game Developer</title>
+  <meta name="theme-color" content="#070a14">
+  <meta name="description" content="Sina Plex؛ توسعه‌دهنده بازی با Unity و C#، علاقه‌مند به ساخت تجربه‌های دوبعدی و سه‌بعدی.">
+  <meta property="og:title" content="Sina Plex | توسعه‌دهنده بازی">
+  <meta property="og:description" content="نمونه‌کارها و مهارت‌های Sina Plex در توسعه بازی با Unity و C#.">
+  <meta property="og:type" content="website">
+  <title>Sina Plex | توسعه‌دهنده بازی با Unity و C#</title>
+
+  <!-- ✅ فونت وزیرمتن از CDN (jsDelivr) + fallback گوگل -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'Tahoma', 'system-ui', 'sans-serif'] },
+          colors: {
+            night: '#070a14',
+            panel: '#11182a',
+            cyan: '#56e0e0',
+            cobalt: '#5c8dff',
+            violet: '#9c76ff',
+            muted: '#a5aec8'
+          },
+          boxShadow: {
+            glow: '0 0 32px rgba(86, 224, 224, .16)',
+            panel: '0 24px 80px rgba(0, 0, 0, .28)'
+          }
+        }
+      }
+    };
+  </script>
+  <script>document.documentElement.classList.add('js');</script>
+
   <style>
-    #ambient-canvas { position:fixed; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; opacity:.9; }
-    body { position:relative; }
-    main, .nav-wrap, footer { position:relative; z-index:1; }
-    .scroll-progress { position:fixed; top:0; right:0; height:3px; width:100%; transform-origin:right center; transform:scaleX(0); z-index:99; background:linear-gradient(90deg,#56e0e0,#5c8dff,#9c76ff); box-shadow:0 0 14px #5c8dff88; }
-    #cursor-trail { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:4; }
-    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
     :root {
-      --bg:#080b16; --panel:rgba(18,24,43,.72); --text:#f3f5ff; --muted:#a5aec8;
-      --blue:#5c8dff; --cyan:#56e0e0; --line:rgba(157,178,255,.16);
-      --radius:22px; --max:1120px;
+      color-scheme: dark;
+      --bg: #070a14;
+      --cyan: #56e0e0;
+      --blue: #5c8dff;
+      --violet: #9c76ff;
+      --line: rgba(157, 178, 255, .14);
+      --ease: cubic-bezier(.22, .75, .2, 1);
     }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; scroll-padding-top:90px; }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
-      margin:0; color:var(--text); font-family:"Vazirmatn",Tahoma,sans-serif;
+      position: relative;
+      min-width: 320px;
+      margin: 0;
+      overflow-x: hidden;
+      color: #f2f5ff;
       background:
-        radial-gradient(ellipse at 78% 10%, rgba(52,91,204,.19), transparent 34%),
-        radial-gradient(ellipse at 12% 48%, rgba(31,194,195,.09), transparent 30%), var(--bg);
-      line-height:1.8; overflow-x:hidden;
+        radial-gradient(ellipse 70% 55% at 84% -8%, rgba(60, 96, 220, .24), transparent 62%),
+        radial-gradient(ellipse 60% 45% at 4% 42%, rgba(31, 194, 195, .10), transparent 62%),
+        var(--bg);
+      font-family: "Vazirmatn", Tahoma, system-ui, sans-serif;
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
+
+    /* گرید ظریف پس‌زمینه */
     body::before {
-      content:""; position:fixed; inset:0; pointer-events:none; opacity:.14; z-index:-1;
-      background-image:linear-gradient(rgba(140,165,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(140,165,255,.12) 1px,transparent 1px);
-      background-size:48px 48px; mask-image:linear-gradient(to bottom,black,transparent 85%);
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background-image:
+        linear-gradient(rgba(140, 165, 255, .07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140, 165, 255, .07) 1px, transparent 1px);
+      background-size: 56px 56px;
+      -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 15%, transparent 78%);
+      mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 15%, transparent 78%);
     }
-    a { color:inherit; text-decoration:none; }
-    button { font:inherit; }
-    .wrap { width:min(var(--max),calc(100% - 40px)); margin-inline:auto; }
-    .nav-wrap { position:sticky; top:12px; z-index:20; padding-top:12px; }
-    nav {
-      display:flex; align-items:center; justify-content:space-between; gap:20px;
-      padding:12px 18px; border:1px solid var(--line); border-radius:18px;
-      background:rgba(8,11,22,.78); backdrop-filter:blur(18px);
-      box-shadow:0 10px 40px rgba(0,0,0,.18);
+
+    /* نورهای نرم و متحرک پس‌زمینه */
+    .aurora {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
     }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:800; direction:ltr; letter-spacing:.3px; }
+    .aurora span {
+      position: absolute;
+      display: block;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .5;
+      will-change: transform;
+    }
+    .aurora span:nth-child(1) {
+      top: -12%; right: -6%;
+      width: 46vw; height: 46vw;
+      background: radial-gradient(circle, rgba(80, 120, 255, .38), transparent 68%);
+      animation: float-a 26s ease-in-out infinite;
+    }
+    .aurora span:nth-child(2) {
+      top: 38%; left: -14%;
+      width: 40vw; height: 40vw;
+      background: radial-gradient(circle, rgba(46, 200, 200, .22), transparent 68%);
+      animation: float-b 32s ease-in-out infinite;
+    }
+    .aurora span:nth-child(3) {
+      bottom: -18%; right: 22%;
+      width: 38vw; height: 38vw;
+      background: radial-gradient(circle, rgba(150, 100, 255, .22), transparent 68%);
+      animation: float-a 38s ease-in-out infinite reverse;
+    }
+    @keyframes float-a {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(-4%, 6%, 0) scale(1.12); }
+    }
+    @keyframes float-b {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(6%, -5%, 0) scale(1.08); }
+    }
+
+    #ambient-canvas {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: .55;
+    }
+
+    /* نوار پیشرفت اسکرول */
+    .scroll-progress {
+      position: fixed;
+      z-index: 100;
+      inset: 0 0 auto;
+      height: 3px;
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: right center;
+      pointer-events: none;
+      background: linear-gradient(90deg, #56e0e0, #5c8dff, #9c76ff);
+      box-shadow: 0 0 16px rgba(92, 141, 255, .55);
+      transition: transform .1s linear;
+    }
+
+    .site-content { position: relative; z-index: 1; }
+    a, button { -webkit-tap-highlight-color: transparent; }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 4px;
+      border-radius: 8px;
+    }
+
+    /* ---------- کارت شیشه‌ای ---------- */
+    .glass-panel {
+      position: relative;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .012)),
+        rgba(17, 24, 42, .72);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .23), inset 0 1px 0 rgba(255, 255, 255, .045);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+    }
+
+    /* نور دنبال‌کننده موس روی پنل‌ها */
+    .spotlight { overflow: hidden; }
+    .spotlight::before {
+      position: absolute;
+      inset: 0;
+      content: "";
+      border-radius: inherit;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .35s ease;
+      background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 0%), rgba(86, 224, 224, .13), transparent 68%);
+    }
+    .spotlight:hover::before { opacity: 1; }
+
+    /* ---------- برند ---------- */
     .brand-mark {
-      display:grid; place-items:center; width:auto; min-width:36px; height:36px; padding:0 10px; border-radius:12px; white-space:nowrap;
-      background:linear-gradient(135deg,var(--blue),#7b5cff); box-shadow:0 0 24px #5c8dff55;
-      font-size:17px;
+      position: relative;
+      display: grid;
+      width: 44px;
+      height: 44px;
+      flex: none;
+      place-items: center;
+      border: 1px solid rgba(160, 202, 255, .35);
+      border-radius: 15px;
+      color: #fff;
+      background: linear-gradient(140deg, #5c8dff, #7654db 72%);
+      box-shadow: 0 0 26px rgba(92, 141, 255, .35);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      direction: ltr;
+      overflow: hidden;
     }
-    .nav-links { display:flex; gap:22px; color:var(--muted); font-size:13px; }
-    .nav-links a:hover { color:var(--text); }
-    .nav-cta,.btn {
-      display:inline-flex; justify-content:center; align-items:center; gap:9px; border:1px solid var(--line);
-      border-radius:12px; padding:10px 16px; color:var(--text); background:rgba(255,255,255,.04);
-      transition:transform .2s,border-color .2s,background .2s; cursor:pointer;
+    .brand-mark::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .5) 50%, transparent 70%);
+      transform: translateX(-130%);
+      animation: brand-shine 5.5s var(--ease) infinite;
     }
-    .nav-cta:hover,.btn:hover { transform:translateY(-2px); border-color:#6c91ff99; }
-    .nav-cta { color:#a9ffff; background:linear-gradient(120deg,rgba(37,201,203,.17),rgba(69,225,233,.07)); border-color:#56e0e088; box-shadow:0 0 15px #56e0e01c; }
-    .nav-cta:hover { border-color:#8bffff; box-shadow:0 0 18px #56e0e066,0 0 38px #56e0e02e; }
-    .btn { background:linear-gradient(135deg,#1b9d9b33,#56e0e01c); border-color:#56e0e077; box-shadow:0 5px 20px #1b9d9b18; }
-    .btn:hover { border-color:#56e0e0; box-shadow:0 0 18px #56e0e044,0 0 36px #1b9d9b22; }
-    .btn.primary { background:linear-gradient(120deg,#1b9d9b,#28b7ad); border-color:transparent; box-shadow:0 8px 28px #1b9d9b38; color:#fff; }
-    .social-github { background:#17191d; border-color:#454b54; color:#f4f6fa; --glow:rgba(35,39,45,.8); }
-    .social-youtube { background:#e62117; border-color:#ff5b52; color:#fff; --glow:rgba(230,33,23,.55); }
-    .social-gmail { background:#f0f3f8; border-color:#d9e0eb; color:#20283a; --glow:rgba(218,226,240,.55); }
-    .social-telegram { background:#229ed9; border-color:#65c9f5; color:#fff; --glow:rgba(34,158,217,.62); }
-    .contact-actions .btn { min-width:100px; min-height:104px; padding:14px 18px 10px; display:flex; flex-direction:column; gap:7px; font-size:12px; font-weight:700; box-shadow:0 5px 18px rgba(0,0,0,.18); }
-    .contact-actions .btn svg { width:27px; height:27px; display:block; flex:none; }
-    .contact-actions .social-github:hover { box-shadow:0 0 22px var(--glow),0 0 42px rgba(35,39,45,.22); border-color:#8b929c; }
-    .contact-actions .social-youtube:hover { box-shadow:0 0 22px var(--glow),0 0 42px rgba(230,33,23,.2); border-color:#ff8b85; }
-    .contact-actions .social-gmail:hover { box-shadow:0 0 22px var(--glow),0 0 42px rgba(218,226,240,.18); border-color:#fff; }
-    .contact-actions .social-telegram:hover { box-shadow:0 0 22px var(--glow),0 0 42px rgba(34,158,217,.22); border-color:#a5e3ff; }
-    .hero { min-height:660px; display:grid; grid-template-columns:1.1fr .9fr; align-items:center; gap:42px; padding-block:80px 65px; }
-    .eyebrow { color:var(--cyan); font-size:13px; font-weight:600; display:flex; align-items:center; gap:9px; }
-    .dot { width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan); }
-    h1 { font-size:clamp(38px,5.5vw,68px); line-height:1.25; letter-spacing:-1.8px; margin:18px 0; }
-    .gradient-text { background:linear-gradient(100deg,#fff 10%,#8db1ff 52%,#62e4e0); -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .hero p { max-width:610px; color:var(--muted); font-size:16px; margin:0 0 26px; }
-    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; }
-    .quick-stats { display:flex; gap:28px; flex-wrap:wrap; margin-top:34px; }
-    .stat strong { display:block; font-size:22px; direction:ltr; text-align:right; }
-    .stat span { font-size:12px; color:var(--muted); }
-    .scene { height:430px; position:relative; display:grid; place-items:center; perspective:1000px; }
-    /* The large blue orb has been removed; subtle rings keep the scene dimensional. */
-    .ring { position:absolute; width:370px;height:140px;border:1px solid #6b9aff80;border-radius:50%; transform:rotate(-27deg) rotateX(58deg); box-shadow:0 0 24px #5078ff18; }
-    .ring.r2 { width:420px;height:190px; transform:rotate(42deg) rotateX(65deg); border-color:#54e4df55; }
-    .cube-wrap { width:150px;height:150px; position:relative; transform-style:preserve-3d; animation:spin 18s linear infinite; }
-    .cube-face { position:absolute; width:150px;height:150px; border:1px solid #8ddfffc7; background:linear-gradient(145deg,rgba(48,104,190,.42),rgba(13,29,56,.78) 55%,rgba(35,205,207,.18)); box-shadow:inset 0 0 28px #5c8dff22, inset 0 0 2px #b6ffffaa, 0 0 20px #577dff1c; backdrop-filter:blur(2px); display:grid;place-items:center; font-size:clamp(18px,3vw,30px);font-weight:800;letter-spacing:1px;color:#e2fbff;text-shadow:0 0 14px #56e0e0aa,0 2px 5px #071020; backface-visibility:visible; }
-    .front { transform:translateZ(75px); } .back { transform:rotateY(180deg) translateZ(75px); }
-    .right { transform:rotateY(90deg) translateZ(75px); } .left { transform:rotateY(-90deg) translateZ(75px); }
-    .top { transform:rotateX(90deg) translateZ(75px); } .bottom { transform:rotateX(-90deg) translateZ(75px); }
-    .float-card { position:absolute; padding:10px 14px; background:rgba(13,19,37,.85); border:1px solid var(--line); border-radius:13px; backdrop-filter:blur(12px); font-size:12px; box-shadow:0 15px 35px #0003; }
-    .fc1 { top:62px;right:0; } .fc2 { bottom:55px;left:0; direction:ltr; }
-    .section { padding:68px 0; }
-    .section-head { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:28px; }
-    .section-kicker { color:var(--cyan); font-size:12px; font-weight:700; }
-    h2 { margin:4px 0 0; font-size:clamp(27px,3vw,38px); line-height:1.4; }
-    .section-head p { color:var(--muted); max-width:490px; font-size:13px; margin:0; }
-    .glass { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); backdrop-filter:blur(15px); }
-    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-    .about-card { padding:26px; }
-    .about-card p { color:var(--muted); font-size:14px; margin:12px 0 0; }
-    .mini-label { display:inline-flex; align-items:center; gap:8px; color:#c7d4ff; font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:9px; }
-    .skills { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-    .skill { font-size:12px; color:#dce5ff; padding:7px 11px; background:#718dff13; border:1px solid #718dff2b; border-radius:10px; }
-    .project-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-    .project { overflow:hidden; transition:transform .25s,border-color .25s; }
-    .project:hover { transform:translateY(-5px); border-color:#789aff55; }
-    .project-art { height:170px; display:grid; place-items:center; position:relative; overflow:hidden; background:radial-gradient(circle at 50% 60%,#344f9d66,transparent 55%),linear-gradient(135deg,#151d38,#0d1223); border-bottom:1px solid var(--line); }
-    .project-art::before { content:""; position:absolute; inset:0; background:linear-gradient(135deg,transparent 48%,#8aa7ff10 49%,transparent 50%); background-size:24px 24px; }
-    .game-icon { font-size:54px; filter:drop-shadow(0 0 22px #6c91ff70); transform:translateZ(0); }
-    .art-tag { position:absolute; top:12px;right:12px; font-size:10px; padding:4px 8px; background:#080b16b8; border:1px solid var(--line); border-radius:8px; }
-    .project-body { padding:20px; }
-    .project-body h3 { margin:0 0 7px; font-size:17px; }
-    .project-body p { margin:0; min-height:76px; color:var(--muted); font-size:12px; }
-    .project-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px; }
-    .text-link { color:#a9c1ff; font-size:12px; }
-    .text-link:hover { color:white; }
-    .project-stack { color:#8c98b7; font-size:10px; }
-    .process-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .process { padding:22px; }
-    .process-num { font-size:12px; color:var(--cyan); direction:ltr; text-align:right; }
-    .process h3 { margin:7px 0; font-size:16px; }
-    .process p { color:var(--muted); font-size:12px; margin:0; }
-    .contact { display:flex; align-items:center; justify-content:space-between; gap:26px; padding:32px; background:radial-gradient(ellipse at 90% 10%,#477aff21,transparent 55%),var(--panel); }
-    .contact p { color:var(--muted); font-size:13px; margin:8px 0 0; }
-    .contact-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    footer { padding:28px 0 34px; color:#7f89a6; font-size:11px; }
-    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap:18px; border-top:1px solid var(--line); padding-top:20px; }
-    .ltr { direction:ltr; unicode-bidi:plaintext; }
-    .reveal { opacity:0; transform:translateY(30px) scale(.985); transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1); }
-    .reveal.visible { opacity:1; transform:translateY(0) scale(1); }
-    .project:nth-child(2) { transition-delay:.08s; } .project:nth-child(3) { transition-delay:.16s; }
-    .about-card:nth-child(2) { transition-delay:.1s; }
-    @keyframes spin { from { transform:rotateX(-18deg) rotateY(0deg) rotateZ(0deg); } to { transform:rotateX(342deg) rotateY(360deg) rotateZ(360deg); } }
-    @keyframes float { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-12px) scale(1.03); } }
-
-    .btn,.nav-cta,.project,.skill,.text-link,.nav-links a {
-      transition:transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease, color .25s ease;
-    }
-    .btn:hover,.nav-cta:hover {
-      box-shadow:0 0 0 1px #79a0ff33,0 0 22px #5b83ff55,0 0 44px #4b6eff22;
-    }
-    .project:hover {
-      box-shadow:0 0 0 1px #7197ff25,0 0 30px #4f77ff24,0 18px 45px #0004;
-    }
-    .skill-primary { font-size:16px; padding:11px 18px; color:#8fffea; background:linear-gradient(135deg,#1b9d9b33,#5c8dff30); border-color:#56e0e088; box-shadow:0 0 18px #56e0e01c; }
-    .skill:hover {
-      border-color:#5c8dffcc; background:#5c8dff24; box-shadow:0 0 18px #5c8dff55; color:#fff; transform:translateY(-2px);
-    }
-    .text-link:hover,.nav-links a:hover { text-shadow:0 0 15px #8baaffaa; }
-    .scene { transform-style:preserve-3d; }
-    .cube-wrap { will-change:transform; }
-    .scene::after {
-      content:""; position:absolute; width:180px; height:180px; border-radius:50%;
-      background:radial-gradient(circle,#4f7dff0b,transparent 72%); pointer-events:none;
-    }
-    .cube-face.front { background:linear-gradient(145deg,rgba(58,121,220,.58),rgba(12,30,56,.86) 65%,rgba(47,211,210,.24)); }
-    .cube-face.back { background:linear-gradient(145deg,rgba(39,91,170,.55),rgba(10,23,46,.9) 65%,rgba(67,198,210,.2)); }
-    .cube-face.right,.cube-face.left { color:#b8ffff; }
-    .cube-face.top,.cube-face.bottom { color:#c9d8ff; }
-    @media (pointer:coarse) {
-      .btn:hover,.nav-cta:hover,.project:hover,.skill:hover { transform:none; }
+    @keyframes brand-shine {
+      0%, 60% { transform: translateX(-130%); }
+      85%, 100% { transform: translateX(130%); }
     }
 
-    /* Keep button defaults teal, while contact buttons retain their own brand colors and matching glow. */
-    .btn:not(.social-github):not(.social-youtube):not(.social-gmail):not(.social-telegram) { background:linear-gradient(135deg,#1b9d9b33,#56e0e01c); border-color:#56e0e077; }
-    .btn:hover:not(.social-github):not(.social-youtube):not(.social-gmail):not(.social-telegram) { border-color:#56e0e0; box-shadow:0 0 18px #56e0e044,0 0 36px #1b9d9b22; }
-    .btn.social-github { background:#17191d; border-color:#454b54; color:#f4f6fa; }
-    .btn.social-youtube { background:#e62117; border-color:#ff5b52; color:#fff; }
-    .btn.social-gmail { background:#f0f3f8; border-color:#d9e0eb; color:#20283a; }
-    .btn.social-telegram { background:#229ed9; border-color:#65c9f5; color:#fff; }
-    .nav-cta:hover { border-color:#8bffff; box-shadow:0 0 18px #56e0e066,0 0 38px #56e0e02e; }
-    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; } }
-    @media(max-width:850px) {
-      .nav-links { gap:12px; } .hero { grid-template-columns:1fr; padding-top:60px; gap:0; } .hero-copy { text-align:center; }
-      .hero-copy .eyebrow,.hero-actions,.quick-stats { justify-content:center; } .hero p { margin-inline:auto; }
-      .scene { height:350px; order:-1; } .ring { width:290px; } .ring.r2 { width:330px; }
-      .project-grid { grid-template-columns:repeat(2,1fr); }
+    /* ---------- ناوبری ---------- */
+    .nav-link {
+      position: relative;
+      padding: .35rem 0;
+      color: #97a2be;
+      transition: color .22s ease;
     }
-    @media(max-width:600px) {
-      .wrap { width:min(var(--max),calc(100% - 26px)); } .nav-wrap { top:6px;padding-top:6px; }
-      nav { padding:9px 11px; } .nav-links { display:none; } .nav-cta { padding:8px 10px;font-size:11px; }
-      .hero { padding-block:35px 35px; min-height:auto; } h1 { font-size:42px; } .hero p { font-size:14px; }
-      .scene { display:none; } .cube-wrap,.cube-face { width:112px;height:112px; } .cube-face { font-size:20px; letter-spacing:0; } .front {transform:translateZ(56px)} .back {transform:rotateY(180deg) translateZ(56px)}
-      .right {transform:rotateY(90deg) translateZ(56px)} .left {transform:rotateY(-90deg) translateZ(56px)} .top {transform:rotateX(90deg) translateZ(56px)} .bottom {transform:rotateX(-90deg) translateZ(56px)}
-      .float-card { font-size:10px; } .fc1 { right:-2px;top:35px; } .fc2 { left:-2px;bottom:30px; }
-      .section { padding:46px 0; } .section-head { align-items:start; flex-direction:column; gap:8px; }
-      .about-grid,.project-grid,.process-grid { grid-template-columns:1fr; } .project-body p { min-height:0; }
-      .contact { padding:24px; align-items:start; flex-direction:column; } .footer-inner { align-items:start; flex-direction:column; }
+    .nav-link::after {
+      position: absolute;
+      right: 0;
+      bottom: -3px;
+      left: 0;
+      height: 2px;
+      border-radius: 2px;
+      content: "";
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      transform: scaleX(0);
+      transform-origin: right center;
+      transition: transform .32s var(--ease);
+    }
+    .nav-link:hover, .nav-link.is-active { color: #fff; }
+    .nav-link:hover::after, .nav-link.is-active::after { transform: scaleX(1); }
+
+    /* منوی موبایل با انیمیشن ارتفاع */
+    #mobile-menu {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height .4s var(--ease), opacity .28s ease, margin .35s var(--ease);
+    }
+    #mobile-menu.is-open {
+      max-height: 340px;
+      opacity: 1;
     }
 
-    /* Latest refinements: centered contact icons and consistent blue skill tiles. */
-    .contact { justify-content:center; align-items:center; }
-    .contact-actions { width:100%; justify-content:center; align-items:center; }
-    .skills { justify-content:center; align-items:center; }
-    .skill, .skill-primary {
-      color:#dce8ff;
-      background:linear-gradient(135deg,rgba(92,141,255,.16),rgba(92,141,255,.07));
-      border:1px solid rgba(92,141,255,.7);
-      box-shadow:0 0 12px rgba(92,141,255,.12);
+    /* ---------- دکمه‌ها ---------- */
+    .btn-primary, .btn-secondary {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .6rem;
+      min-height: 48px;
+      overflow: hidden;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: .7rem 1.25rem;
+      font-size: .88rem;
+      font-weight: 700;
+      transition: transform .24s var(--ease), box-shadow .24s var(--ease), border-color .24s ease, background .24s ease;
     }
-    .skill:hover, .skill-primary:hover {
-      color:#fff;
-      background:linear-gradient(135deg,rgba(27,157,155,.42),rgba(40,183,173,.2));
-      border-color:#56e0c7;
-      box-shadow:0 0 18px rgba(86,224,199,.4),0 0 32px rgba(27,157,155,.18);
-      transform:translateY(-2px);
+    .btn-primary {
+      color: #06121a;
+      background: linear-gradient(120deg, #7cfff2, #55d9de 52%, #8fadff);
+      box-shadow: 0 10px 30px rgba(46, 198, 201, .22);
     }
-    @media(max-width:600px) {
-      .contact { align-items:center; }
-      .contact-actions { justify-content:center; }
+    .btn-primary::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .65) 50%, transparent 70%);
+      transform: translateX(-130%);
+      transition: transform .75s var(--ease);
+    }
+    .btn-primary:hover::after { transform: translateX(130%); }
+    .btn-secondary {
+      color: #e9edff;
+      border-color: rgba(157, 178, 255, .19);
+      background: rgba(255, 255, 255, .04);
+    }
+    .btn-primary:hover, .btn-secondary:hover { transform: translateY(-2px); }
+    .btn-primary:hover { box-shadow: 0 16px 40px rgba(46, 198, 201, .34); }
+    .btn-secondary:hover {
+      border-color: rgba(86, 224, 224, .55);
+      background: rgba(86, 224, 224, .08);
+    }
+
+    /* ---------- تایپوگرافی ---------- */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      color: #81eeea;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      flex: none;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 14px rgba(86, 224, 224, .9);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: .65; }
+    }
+    .gradient-text {
+      color: transparent;
+      background: linear-gradient(95deg, #fff 5%, #9db8ff 40%, #72eee5 70%, #b7a5ff 100%);
+      background-size: 220% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: shine-text 9s linear infinite;
+    }
+    @keyframes shine-text {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 220% 50%; }
+    }
+    .section-kicker { color: #72e8e2; font-size: .75rem; font-weight: 700; letter-spacing: .04em; }
+    .section-title {
+      color: #f4f6ff;
+      font-size: clamp(1.75rem, 3.4vw, 2.45rem);
+      font-weight: 800;
+      line-height: 1.4;
+      letter-spacing: -.03em;
+    }
+    .section-copy { max-width: 580px; color: #a5aec8; font-size: .92rem; line-height: 2; }
+
+    /* ---------- صحنه هیرو ---------- */
+    .hero-scene {
+      position: relative;
+      display: grid;
+      min-height: 305px;
+      place-items: center;
+      overflow: hidden;
+      perspective: 1000px;
+      isolation: isolate;
+    }
+    .hero-scene::after {
+      position: absolute;
+      z-index: -1;
+      width: 200px;
+      height: 200px;
+      border-radius: 999px;
+      content: "";
+      background: radial-gradient(circle, rgba(79, 125, 255, .22), transparent 72%);
+      filter: blur(6px);
+      animation: glow-pulse 6s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%, 100% { transform: scale(1); opacity: .85; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+    .orbit {
+      position: absolute;
+      width: min(76%, 330px);
+      height: 120px;
+      border: 1px solid rgba(107, 154, 255, .5);
+      border-radius: 50%;
+      box-shadow: 0 0 24px rgba(80, 120, 255, .08);
+      transform: rotate(-27deg) rotateX(58deg);
+    }
+    .orbit--second {
+      width: min(88%, 380px);
+      height: 160px;
+      border-color: rgba(84, 228, 223, .32);
+      transform: rotate(42deg) rotateX(65deg);
+    }
+    .cube {
+      position: relative;
+      width: 112px;
+      height: 112px;
+      transform-style: preserve-3d;
+      animation: cube-spin 19s linear infinite;
+      will-change: transform;
+    }
+    .cube-face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(141, 223, 255, .78);
+      color: #e2fbff;
+      background: linear-gradient(145deg, rgba(48, 104, 190, .48), rgba(13, 29, 56, .88) 57%, rgba(35, 205, 207, .21));
+      box-shadow: inset 0 0 26px rgba(92, 141, 255, .16), 0 0 20px rgba(87, 125, 255, .12);
+      text-shadow: 0 0 13px rgba(86, 224, 224, .7);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      -webkit-backface-visibility: visible;
+      backface-visibility: visible;
+    }
+    .cube-front { transform: translateZ(56px); }
+    .cube-back { transform: rotateY(180deg) translateZ(56px); }
+    .cube-right { transform: rotateY(90deg) translateZ(56px); }
+    .cube-left { transform: rotateY(-90deg) translateZ(56px); }
+    .cube-top { transform: rotateX(90deg) translateZ(56px); }
+    .cube-bottom { transform: rotateX(-90deg) translateZ(56px); }
+    .float-chip {
+      position: absolute;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      border: 1px solid rgba(157, 178, 255, .2);
+      border-radius: 12px;
+      padding: .45rem .72rem;
+      color: #dce5ff;
+      background: rgba(10, 16, 31, .84);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, .28);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-size: .7rem;
+      font-weight: 600;
+      animation: chip-float 7s ease-in-out infinite;
+    }
+    .float-chip--one { top: 20%; right: 3%; }
+    .float-chip--two { bottom: 18%; left: 2%; direction: ltr; animation-delay: -2.4s; }
+    .float-chip--three { top: 18%; left: 7%; animation-delay: -4.6s; }
+    @keyframes chip-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-9px); }
+    }
+    .status-pulse {
+      position: relative;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #56e0e0;
+      box-shadow: 0 0 10px #56e0e0;
+    }
+
+    /* ---------- نوار متحرک تکنولوژی ---------- */
+    .marquee {
+      position: relative;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    }
+    .marquee__track {
+      display: flex;
+      width: max-content;
+      align-items: center;
+      gap: 2.75rem;
+      animation: marquee 34s linear infinite;
+    }
+    .marquee:hover .marquee__track { animation-play-state: paused; }
+    .marquee__item {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      color: #8e9ab8;
+      font-size: .82rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color .25s ease;
+    }
+    .marquee__item::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 10px rgba(86, 224, 224, .7);
+    }
+    .marquee__item:hover { color: #e8f6ff; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ---------- چیپ‌های مهارت ---------- */
+    .skill-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      border: 1px solid rgba(115, 151, 255, .23);
+      border-radius: 11px;
+      padding: .5rem .85rem;
+      color: #dce5ff;
+      background: rgba(92, 141, 255, .09);
+      font-size: .78rem;
+      font-weight: 600;
+      transition: transform .22s var(--ease), border-color .22s ease, background .22s ease;
+    }
+    .skill-chip:hover {
+      transform: translateY(-3px);
+      border-color: rgba(86, 224, 224, .55);
+      background: rgba(86, 224, 224, .12);
+    }
+    .skill-chip--primary {
+      border-color: rgba(86, 224, 224, .45);
+      color: #a9fffa;
+      background: linear-gradient(135deg, rgba(27, 157, 155, .22), rgba(92, 141, 255, .14));
+    }
+
+    /* ---------- کارت پروژه ---------- */
+    .project-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(157, 178, 255, .13);
+      border-radius: 22px;
+      background: linear-gradient(150deg, rgba(22, 30, 53, .88), rgba(12, 17, 31, .94));
+      box-shadow: 0 16px 45px rgba(0, 0, 0, .18);
+      transition: transform .32s var(--ease), box-shadow .32s var(--ease);
+    }
+    .project-card::before {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      padding: 1px;
+      border-radius: inherit;
+      content: "";
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .35s ease;
+      background: linear-gradient(140deg, rgba(86, 224, 224, .75), rgba(92, 141, 255, .45), rgba(156, 118, 255, .3));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+    .project-card::after {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      content: "";
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .35s ease;
+      background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 0%), rgba(86, 224, 224, .12), transparent 70%);
+    }
+    .project-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 26px 60px rgba(0, 0, 0, .34), 0 0 34px rgba(79, 119, 255, .14);
+    }
+    .project-card:hover::before, .project-card:hover::after { opacity: 1; }
+
+    .project-cover {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      background:
+        radial-gradient(120% 120% at 20% 0%, rgba(92, 141, 255, .28), transparent 60%),
+        radial-gradient(120% 120% at 90% 100%, rgba(86, 224, 224, .22), transparent 55%),
+        #121a31;
+    }
+    .project-cover::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(4, 7, 16, .14), transparent 38%, rgba(4, 7, 16, .52));
+    }
+    .project-cover img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .7s var(--ease), filter .4s ease;
+    }
+    .project-card:hover .project-cover img { transform: scale(1.07); filter: saturate(1.1); }
+
+    .project-type {
+      position: absolute;
+      z-index: 1;
+      top: 14px;
+      right: 14px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 9px;
+      padding: .28rem .62rem;
+      color: #fff;
+      background: rgba(8, 11, 22, .68);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-size: .68rem;
+      font-weight: 600;
+    }
+    .project-open {
+      position: absolute;
+      z-index: 1;
+      bottom: 13px;
+      left: 14px;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 11px;
+      color: #fff;
+      background: rgba(8, 11, 22, .65);
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity .25s ease, transform .25s var(--ease);
+    }
+    .project-card:hover .project-open,
+    .project-cover:focus-visible .project-open { opacity: 1; transform: translateY(0); }
+
+    .project-body { position: relative; z-index: 3; padding: 1.25rem; }
+    .project-description { min-height: 4.4rem; color: #a5aec8; font-size: .81rem; line-height: 1.95; }
+    .tech-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(157, 178, 255, .13);
+      border-radius: 10px;
+      padding: .3rem .58rem;
+      color: #9ca9c7;
+      background: rgba(255, 255, 255, .035);
+      font-size: .66rem;
+      font-weight: 600;
+    }
+
+    /* ---------- فیلترها ---------- */
+    .filter-chip {
+      position: relative;
+      border: 1px solid rgba(157, 178, 255, .16);
+      border-radius: 999px;
+      padding: .45rem .95rem;
+      color: #a5aec8;
+      background: rgba(255, 255, 255, .025);
+      font-size: .76rem;
+      font-weight: 600;
+      transition: color .22s ease, background .22s ease, border-color .22s ease, transform .22s var(--ease);
+    }
+    .filter-chip:hover { transform: translateY(-2px); color: #dffffc; }
+    .filter-chip:hover, .filter-chip.is-active {
+      border-color: rgba(86, 224, 224, .45);
+      color: #dffffc;
+      background: rgba(86, 224, 224, .1);
+    }
+
+    /* ---------- شبکه‌های اجتماعی ---------- */
+    .social-link {
+      display: inline-flex;
+      min-width: 120px;
+      align-items: center;
+      justify-content: center;
+      gap: .55rem;
+      border: 1px solid rgba(157, 178, 255, .15);
+      border-radius: 13px;
+      padding: .72rem .9rem;
+      color: #e7eaff;
+      background: rgba(255, 255, 255, .04);
+      font-size: .78rem;
+      font-weight: 600;
+      transition: transform .24s var(--ease), border-color .24s ease, background .24s ease;
+    }
+    .social-link:hover {
+      transform: translateY(-3px);
+      border-color: rgba(86, 224, 224, .45);
+      background: rgba(86, 224, 224, .08);
+    }
+
+    /* ---------- ریویل ---------- */
+    .reveal { opacity: 1; transform: none; }
+    .js .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .8s var(--ease) var(--d, 0s), transform .8s var(--ease) var(--d, 0s);
+    }
+    .js .reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+    /* ---------- توست ---------- */
+    .toast {
+      position: fixed;
+      z-index: 120;
+      bottom: 1.6rem;
+      right: 0;
+      left: 0;
+      width: fit-content;
+      margin-inline: auto;
+      transform: translateY(24px);
+      border: 1px solid rgba(86, 224, 224, .38);
+      border-radius: 14px;
+      padding: .68rem 1.15rem;
+      color: #d8fffd;
+      background: rgba(10, 16, 31, .94);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .45);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-size: .8rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease, transform .3s var(--ease);
+    }
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
+
+    /* ---------- دکمه بازگشت به بالا ---------- */
+    .to-top {
+      position: fixed;
+      z-index: 90;
+      bottom: 1.5rem;
+      left: 1.25rem;
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border: 1px solid rgba(157, 178, 255, .22);
+      border-radius: 14px;
+      color: #dbe6ff;
+      background: rgba(12, 18, 33, .85);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .35);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(14px);
+      transition: opacity .3s ease, transform .3s var(--ease), border-color .25s ease, color .25s ease;
+    }
+    .to-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .to-top:hover { border-color: rgba(86, 224, 224, .6); color: var(--cyan); }
+
+    @keyframes cube-spin {
+      from { transform: rotateX(-18deg) rotateY(0deg) rotateZ(0deg); }
+      to { transform: rotateX(342deg) rotateY(360deg) rotateZ(360deg); }
+    }
+
+    /* ---------- موبایل ---------- */
+    @media (max-width: 640px) {
+      .hero-scene { min-height: 250px; }
+      .cube { width: 98px; height: 98px; }
+      .cube-front { transform: translateZ(49px); }
+      .cube-back { transform: rotateY(180deg) translateZ(49px); }
+      .cube-right { transform: rotateY(90deg) translateZ(49px); }
+      .cube-left { transform: rotateY(-90deg) translateZ(49px); }
+      .cube-top { transform: rotateX(90deg) translateZ(49px); }
+      .cube-bottom { transform: rotateX(-90deg) translateZ(49px); }
+      .float-chip { padding: .35rem .55rem; font-size: .63rem; }
+      .float-chip--one { right: 0; }
+      .float-chip--two { left: 0; }
+      .float-chip--three { left: 2%; }
+      .project-description { min-height: 0; }
+      .to-top { bottom: 1rem; left: 1rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+      .js .reveal { opacity: 1; transform: none; }
     }
   </style>
 </head>
-<body>
+
+<body class="min-h-screen bg-night font-sans text-white antialiased selection:bg-cyan/30 selection:text-white">
   <canvas id="ambient-canvas" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="scroll-progress" aria-hidden="true"></div>
-  <canvas id="cursor-trail" aria-hidden="true"></canvas>
-  <div class="wrap nav-wrap">
-    <nav aria-label="ناوبری اصلی">
-      <a class="brand" href="#home" aria-label="Sina Plex"><span class="brand-mark">SINA PLEX</span></a>
-      <div class="nav-links">
-        <a href="#about">درباره من</a><a href="#projects">پروژه‌ها</a><a href="#skills">مهارت‌ها</a><a href="#contact">ارتباط</a>
+
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:right-4 focus:top-4 focus:z-[130] focus:rounded-xl focus:bg-cyan focus:px-4 focus:py-2 focus:font-bold focus:text-night">رفتن به محتوای اصلی</a>
+
+  <div class="site-content">
+    <!-- ================= هدر ================= -->
+    <header class="sticky top-3 z-50 mx-auto mt-3 w-[calc(100%_-_1.25rem)] max-w-6xl">
+      <nav class="glass-panel flex items-center justify-between gap-3 rounded-2xl p-2.5 shadow-panel md:px-4" aria-label="ناوبری اصلی">
+        <a class="group flex min-w-0 items-center gap-3" href="#home" aria-label="Sina Plex، خانه">
+          <span class="brand-mark">SP</span>
+          <span class="min-w-0 leading-tight">
+            <span class="block truncate text-sm font-extrabold tracking-wide text-white" dir="ltr">Sina Plex</span>
+            <span class="mt-1 hidden text-[10px] font-medium text-slate-400 sm:block" dir="ltr">Unity Game Developer</span>
+          </span>
+        </a>
+
+        <div class="hidden items-center gap-6 text-[13px] font-medium lg:flex">
+          <a class="nav-link" href="#about" data-spy>درباره من</a>
+          <a class="nav-link" href="#projects" data-spy>نمونه‌کارها</a>
+          <a class="nav-link" href="#process" data-spy>روش کار</a>
+          <a class="nav-link" href="#contact" data-spy>ارتباط</a>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <a class="hidden items-center gap-2 rounded-xl border border-cyan/30 bg-cyan/10 px-4 py-2.5 text-xs font-bold text-cyan transition hover:border-cyan/60 hover:bg-cyan/15 sm:inline-flex" href="#contact">
+            همکاری با من <span aria-hidden="true">↗</span>
+          </a>
+          <button id="menu-toggle" class="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-100 transition hover:border-cyan/40 hover:text-cyan lg:hidden" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن منو">
+            <svg id="menu-open-icon" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg>
+            <svg id="menu-close-icon" class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </nav>
+
+      <div id="mobile-menu" class="glass-panel mt-2 rounded-2xl p-2 shadow-panel lg:hidden">
+        <a class="block rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white" href="#about">درباره من</a>
+        <a class="block rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white" href="#projects">نمونه‌کارها</a>
+        <a class="block rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white" href="#process">روش کار</a>
+        <a class="block rounded-xl px-4 py-3 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white" href="#contact">ارتباط</a>
       </div>
-      <a class="nav-cta" href="#projects">دیدن نمونه‌کارها <span>↗</span></a>
-    </nav>
+    </header>
+
+    <main id="main">
+      <!-- ================= هیرو ================= -->
+      <section id="home" class="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-14 pt-12 sm:px-7 md:min-h-[690px] md:grid-cols-[1.05fr_.95fr] md:gap-12 md:pb-20 md:pt-16 lg:px-8">
+        <div class="reveal relative z-10 text-center md:text-right">
+          <div class="eyebrow mb-5 justify-center md:justify-start">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            توسعه‌دهنده بازی و برنامه‌نویس
+          </div>
+
+          <h1 class="mx-auto max-w-2xl text-[2.7rem] font-extrabold leading-[1.25] tracking-[-.055em] text-white sm:text-5xl md:mx-0 md:text-[3.8rem] lg:text-[4.25rem]">
+            ایده‌ها را به<br>
+            <span class="gradient-text">بازی تبدیل می‌کنم.</span>
+          </h1>
+
+          <p class="mx-auto mt-6 max-w-xl text-sm leading-8 text-slate-300 sm:text-base md:mx-0">
+            من سینا هستم؛ با <span class="font-semibold text-white" dir="ltr">Unity</span> و <span class="font-semibold text-white" dir="ltr">C#</span> بازی می‌سازم و روی مکانیک‌های گیم‌پلی، رفتار دشمن‌ها و تجربه‌های دوبعدی و سه‌بعدی تمرکز دارم.
+          </p>
+
+          <div class="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
+            <a class="btn-primary" href="#projects">
+              دیدن نمونه‌کارها
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="btn-secondary" href="#contact">ارتباط با من <span aria-hidden="true">↗</span></a>
+          </div>
+
+          <div class="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 border-t border-white/10 pt-6 md:justify-start">
+            <div class="text-center md:text-right">
+              <strong class="block text-lg font-extrabold text-white" dir="ltr">Unity</strong>
+              <span class="text-xs text-slate-400">موتور بازی‌سازی</span>
+            </div>
+            <div class="text-center md:text-right">
+              <strong class="block text-lg font-extrabold text-white" dir="ltr">C#</strong>
+              <span class="text-xs text-slate-400">برنامه‌نویسی گیم‌پلی</span>
+            </div>
+            <div class="text-center md:text-right">
+              <strong class="block text-lg font-extrabold text-white" dir="ltr">2D / 3D</strong>
+              <span class="text-xs text-slate-400">توسعه بازی</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal relative mx-auto w-full max-w-xl" style="--d:.12s">
+          <div class="absolute -inset-8 -z-10 rounded-full bg-blue-500/10 blur-3xl" aria-hidden="true"></div>
+          <div class="glass-panel spotlight overflow-hidden rounded-[28px] p-4 sm:p-5" id="hero-panel">
+            <div class="relative z-10 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-4">
+              <div class="flex items-center gap-3">
+                <span class="grid h-9 w-9 place-items-center rounded-xl border border-cyan/20 bg-cyan/10 text-cyan">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3m8-12h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3M9 12h6m-6 4h6M9 4h6v16H9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <div class="text-right">
+                  <p class="text-xs font-bold text-slate-100">فضای کاری من</p>
+                  <p class="text-[10px] text-slate-500" dir="ltr">Unity · C# · Game Dev</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5" aria-hidden="true">
+                <span class="h-2 w-2 rounded-full bg-rose-400/80"></span>
+                <span class="h-2 w-2 rounded-full bg-amber-300/80"></span>
+                <span class="h-2 w-2 rounded-full bg-emerald-300/80"></span>
+              </div>
+            </div>
+
+            <div class="hero-scene" role="img" aria-label="مکعب سه‌بعدی با نمادهای Unity، C# و بازی‌سازی">
+              <div class="orbit" aria-hidden="true"></div>
+              <div class="orbit orbit--second" aria-hidden="true"></div>
+              <div class="cube" aria-hidden="true">
+                <div class="cube-face cube-front">C#</div>
+                <div class="cube-face cube-back">UNITY</div>
+                <div class="cube-face cube-right">AI</div>
+                <div class="cube-face cube-left">2D / 3D</div>
+                <div class="cube-face cube-top">GAMES</div>
+                <div class="cube-face cube-bottom">CODE</div>
+              </div>
+              <span class="float-chip float-chip--one"><span class="status-pulse" aria-hidden="true"></span> گیم‌پلی</span>
+              <span class="float-chip float-chip--two">C# <span class="text-cyan">//</span> Unity</span>
+              <span class="float-chip float-chip--three"><span class="text-cyan">✦</span> 2D / 3D</span>
+            </div>
+
+            <div class="relative z-10 grid grid-cols-3 gap-2 border-t border-white/10 pt-4 text-center">
+              <div>
+                <span class="block text-xs font-bold text-slate-200">مکانیک</span>
+                <span class="text-[10px] text-slate-500" dir="ltr">Gameplay</span>
+              </div>
+              <div>
+                <span class="block text-xs font-bold text-slate-200">رفتار دشمن</span>
+                <span class="text-[10px] text-slate-500" dir="ltr">AI &amp; Logic</span>
+              </div>
+              <div>
+                <span class="block text-xs font-bold text-slate-200">بازی‌سازی</span>
+                <span class="text-[10px] text-slate-500" dir="ltr">Prototyping</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= نوار متحرک ================= -->
+      <div class="marquee mx-auto max-w-6xl border-y border-white/[.07] py-4" dir="ltr" aria-hidden="true">
+        <div class="marquee__track">
+          <span class="marquee__item">Unity Engine</span>
+          <span class="marquee__item">C#</span>
+          <span class="marquee__item">Gameplay Systems</span>
+          <span class="marquee__item">Enemy AI</span>
+          <span class="marquee__item">2D / 3D</span>
+          <span class="marquee__item">Python</span>
+          <span class="marquee__item">PHP</span>
+          <span class="marquee__item">SQL</span>
+          <span class="marquee__item">Prototyping</span>
+          <span class="marquee__item">Unity Engine</span>
+          <span class="marquee__item">C#</span>
+          <span class="marquee__item">Gameplay Systems</span>
+          <span class="marquee__item">Enemy AI</span>
+          <span class="marquee__item">2D / 3D</span>
+          <span class="marquee__item">Python</span>
+          <span class="marquee__item">PHP</span>
+          <span class="marquee__item">SQL</span>
+          <span class="marquee__item">Prototyping</span>
+        </div>
+      </div>
+
+      <!-- ================= درباره + مهارت‌ها ================= -->
+      <section id="about" class="mx-auto max-w-6xl scroll-mt-28 px-5 py-14 sm:px-7 md:py-20 lg:px-8">
+        <div class="mb-8 flex flex-col gap-3 md:mb-10 md:flex-row md:items-end md:justify-between">
+          <div class="reveal">
+            <p class="section-kicker">کمی درباره من</p>
+            <h2 class="section-title mt-2">ترکیب منطق و خلاقیت</h2>
+          </div>
+          <p class="section-copy reveal md:pb-1" style="--d:.08s">از طراحی مکانیک تا پیاده‌سازی، به ساخت بازی‌هایی علاقه دارم که هم خوب کار کنند و هم تجربه‌ای به‌یادماندنی بسازند.</p>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-[1.08fr_.92fr]">
+          <article class="glass-panel spotlight reveal rounded-3xl p-6 sm:p-8">
+            <div class="relative z-10 flex items-start gap-4">
+              <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-blue-300/20 bg-blue-400/10 text-xl text-blue-200" aria-hidden="true">✦</span>
+              <div>
+                <p class="section-kicker">سلام، من سینا هستم</p>
+                <h3 class="mt-1 text-xl font-extrabold text-white">توسعه‌دهنده بازی با Unity و C#</h3>
+              </div>
+            </div>
+            <p class="relative z-10 mt-5 text-sm leading-8 text-slate-300">
+              با نام <b class="font-bold text-white" dir="ltr">Sina Plex</b> فعالیت می‌کنم. تمرکزم روی ساخت بازی‌های دوبعدی، طراحی سیستم‌های گیم‌پلی، پیاده‌سازی رفتار دشمن‌ها و توسعه قابلیت‌های موردنیاز هر پروژه است.
+            </p>
+            <div class="relative z-10 mt-6 flex flex-wrap gap-2">
+              <span class="rounded-lg border border-white/10 bg-white/[.035] px-3 py-1.5 text-[11px] text-slate-300">طراحی مکانیک</span>
+              <span class="rounded-lg border border-white/10 bg-white/[.035] px-3 py-1.5 text-[11px] text-slate-300">منطق بازی</span>
+              <span class="rounded-lg border border-white/10 bg-white/[.035] px-3 py-1.5 text-[11px] text-slate-300">نمونه‌سازی</span>
+            </div>
+          </article>
+
+          <article id="skills" class="glass-panel spotlight reveal scroll-mt-28 rounded-3xl p-6 sm:p-8" style="--d:.08s">
+            <div class="relative z-10 flex items-center justify-between gap-3">
+              <div>
+                <p class="section-kicker">ابزارهای من</p>
+                <h3 class="mt-1 text-xl font-extrabold text-white">مهارت‌ها</h3>
+              </div>
+              <span class="grid h-11 w-11 place-items-center rounded-2xl border border-cyan/20 bg-cyan/10 text-cyan" aria-hidden="true">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-11-2 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </div>
+            <p class="relative z-10 mt-3 text-sm leading-7 text-slate-400">ابزارها و زبان‌هایی که در مسیر توسعه و ساخت پروژه از آن‌ها استفاده می‌کنم.</p>
+            <div class="relative z-10 mt-6 flex flex-wrap gap-2.5">
+              <span class="skill-chip skill-chip--primary" dir="ltr">Unity</span>
+              <span class="skill-chip skill-chip--primary" dir="ltr">C#</span>
+              <span class="skill-chip" dir="ltr">Python</span>
+              <span class="skill-chip" dir="ltr">PHP</span>
+              <span class="skill-chip" dir="ltr">SQL</span>
+            </div>
+            <div class="relative z-10 mt-7 rounded-2xl border border-cyan/10 bg-gradient-to-l from-cyan/[.08] to-blue-500/[.06] p-4">
+              <p class="text-xs font-bold text-slate-200">تمرکز اصلی</p>
+              <p class="mt-1 text-xs leading-6 text-slate-400">سیستم‌های گیم‌پلی، کنترل بازیکن و رفتارهای پایه در بازی‌های Unity</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= نمونه‌کارها ================= -->
+      <section id="projects" class="mx-auto max-w-6xl scroll-mt-28 px-5 py-14 sm:px-7 md:py-20 lg:px-8">
+        <div class="mb-8 flex flex-col gap-5 md:mb-10 md:flex-row md:items-end md:justify-between">
+          <div class="reveal">
+            <p class="section-kicker">چند نمونه از کارها</p>
+            <h2 class="section-title mt-2">نمونه‌کارها</h2>
+            <p class="section-copy mt-3">پروژه‌ها و ایده‌هایی در مسیر بازی‌سازی با Unity؛ برای دیدن کدها، هر پروژه را در GitHub باز کن.</p>
+          </div>
+          <a class="btn-secondary reveal w-fit" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer" style="--d:.08s">
+            همه پروژه‌ها در GitHub
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.53v-2.08c-3.1.68-3.76-1.32-3.76-1.32-.5-1.3-1.24-1.65-1.24-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.71 2.62 1.22 3.26.93.1-.72.39-1.22.71-1.5-2.48-.28-5.09-1.24-5.09-5.51 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.1-1.45 3.04-1.15 3.04-1.15.61 1.54.23 2.68.12 2.96.72.78 1.15 1.78 1.15 3.01 0 4.28-2.61 5.22-5.1 5.5.4.35.75 1.03.75 2.08V22c0 .29.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/></svg>
+          </a>
+        </div>
+
+        <div class="reveal mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="فیلتر نمونه‌کارها">
+          <button class="filter-chip is-active" type="button" data-filter="all" aria-pressed="true">همه</button>
+          <button class="filter-chip" type="button" data-filter="2d" aria-pressed="false">دوبعدی</button>
+          <button class="filter-chip" type="button" data-filter="3d" aria-pressed="false">سه‌بعدی</button>
+          <span id="project-count" class="mr-auto text-xs text-slate-500" aria-live="polite">۳ پروژه</span>
+        </div>
+
+        <div id="project-grid" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="project-card reveal" data-category="2d">
+            <a class="project-cover" href="https://github.com/Sinaplex/Unity-Patrol-Enemy" target="_blank" rel="noreferrer" aria-label="مشاهده پروژه دشمن گشت‌زن در GitHub">
+              <img src="assets/projects/patrol-enemy.webp" alt="کاور هنری برای نمونه بازی دوبعدی دشمن گشت‌زن" width="1280" height="720" loading="lazy" decoding="async">
+              <span class="project-type">Unity · دوبعدی</span>
+              <span class="project-open" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </a>
+            <div class="project-body">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-extrabold text-white">دشمن گشت‌زن</h3>
+                <span class="pt-1 text-[11px] font-bold text-slate-600" dir="ltr">01</span>
+              </div>
+              <p class="project-description mt-2">نمونه‌ای از طراحی رفتار پایه دشمن در بازی دوبعدی و پیاده‌سازی حرکت گشت‌زنی با Unity و C#.</p>
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                <span class="tech-chip" dir="ltr">Unity</span>
+                <span class="tech-chip" dir="ltr">C#</span>
+                <span class="tech-chip">رفتار دشمن</span>
+              </div>
+              <div class="mt-5 flex items-center justify-between gap-3 border-t border-white/[.07] pt-4">
+                <a class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition hover:text-white" href="https://github.com/Sinaplex/Unity-Patrol-Enemy" target="_blank" rel="noreferrer">مشاهده در GitHub <span aria-hidden="true">↗</span></a>
+                <span class="text-[10px] text-slate-500">نمونه پروژه</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="project-card reveal" data-category="2d" style="--d:.08s">
+            <a class="project-cover" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer" aria-label="مشاهده پروژه‌های Sina Plex در GitHub، ماجراجویی در هزارتو">
+              <img src="assets/projects/maze-adventure.webp" alt="کاور هنری برای بازی ماجراجویی در هزارتو" width="1280" height="720" loading="lazy" decoding="async">
+              <span class="project-type">Unity · ماجراجویی</span>
+              <span class="project-open" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </a>
+            <div class="project-body">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-extrabold text-white">ماجراجویی در هزارتو</h3>
+                <span class="pt-1 text-[11px] font-bold text-slate-600" dir="ltr">02</span>
+              </div>
+              <p class="project-description mt-2">ایده‌ی یک بازی ماز با مراحل مختلف، دشمن‌ها، تله‌ها و قابلیت‌هایی برای بازیکن؛ مناسب برای نمایش سیستم‌های گیم‌پلی.</p>
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                <span class="tech-chip" dir="ltr">Unity</span>
+                <span class="tech-chip" dir="ltr">C#</span>
+                <span class="tech-chip">طراحی مرحله</span>
+              </div>
+              <div class="mt-5 flex items-center justify-between gap-3 border-t border-white/[.07] pt-4">
+                <a class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition hover:text-white" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer">پروفایل GitHub <span aria-hidden="true">↗</span></a>
+                <span class="text-[10px] text-slate-500">بازی‌سازی</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="project-card reveal" data-category="3d" style="--d:.16s">
+            <a class="project-cover" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer" aria-label="مشاهده پروژه‌های Sina Plex در GitHub، نمونه بازی آنلاین سه‌بعدی">
+              <img src="assets/projects/online-arena.webp" alt="کاور هنری برای نمونه بازی آنلاین سه‌بعدی" width="1280" height="720" loading="lazy" decoding="async">
+              <span class="project-type">Unity · سه‌بعدی</span>
+              <span class="project-open" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </a>
+            <div class="project-body">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-extrabold text-white">نمونه بازی آنلاین</h3>
+                <span class="pt-1 text-[11px] font-bold text-slate-600" dir="ltr">03</span>
+              </div>
+              <p class="project-description mt-2">نمونه‌ای چندنفره برای نمایش حرکت بازیکن، سیستم شبکه و هماهنگی وضعیت بازی در یک محیط سه‌بعدی.</p>
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                <span class="tech-chip" dir="ltr">Unity</span>
+                <span class="tech-chip" dir="ltr">C#</span>
+                <span class="tech-chip">Multiplayer</span>
+              </div>
+              <div class="mt-5 flex items-center justify-between gap-3 border-t border-white/[.07] pt-4">
+                <a class="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition hover:text-white" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer">پروفایل GitHub <span aria-hidden="true">↗</span></a>
+                <span class="text-[10px] text-slate-500">نمونه پروژه</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= روش کار ================= -->
+      <section id="process" class="mx-auto max-w-6xl scroll-mt-28 px-5 py-14 sm:px-7 md:py-20 lg:px-8">
+        <div class="mb-8 reveal">
+          <p class="section-kicker">از ایده تا اجرا</p>
+          <h2 class="section-title mt-2">روش کار من</h2>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          <article class="glass-panel spotlight reveal rounded-3xl p-6">
+            <span class="relative z-10 text-xs font-extrabold tracking-widest text-cyan" dir="ltr">01 / PLAN</span>
+            <h3 class="relative z-10 mt-3 text-lg font-bold text-white">تعریف مکانیک</h3>
+            <p class="relative z-10 mt-2 text-sm leading-7 text-slate-400">هدف بازی و رفتارهای موردنیاز را روشن می‌کنم و ایده را به بخش‌های کوچک و قابل‌اجرا می‌شکنم.</p>
+          </article>
+          <article class="glass-panel spotlight reveal rounded-3xl p-6" style="--d:.08s">
+            <span class="relative z-10 text-xs font-extrabold tracking-widest text-cyan" dir="ltr">02 / BUILD</span>
+            <h3 class="relative z-10 mt-3 text-lg font-bold text-white">ساخت نمونه اولیه</h3>
+            <p class="relative z-10 mt-2 text-sm leading-7 text-slate-400">با Unity و C# اجزای اصلی گیم‌پلی را پیاده‌سازی می‌کنم تا ایده سریع قابل‌آزمایش شود.</p>
+          </article>
+          <article class="glass-panel spotlight reveal rounded-3xl p-6" style="--d:.16s">
+            <span class="relative z-10 text-xs font-extrabold tracking-widest text-cyan" dir="ltr">03 / REFINE</span>
+            <h3 class="relative z-10 mt-3 text-lg font-bold text-white">تست و بهبود</h3>
+            <p class="relative z-10 mt-2 text-sm leading-7 text-slate-400">رفتارها را بررسی می‌کنم، بازخورد می‌گیرم و جزئیات تجربه را مرحله‌به‌مرحله بهتر می‌کنم.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= ارتباط ================= -->
+      <section id="contact" class="mx-auto max-w-6xl scroll-mt-28 px-5 py-14 sm:px-7 md:py-20 lg:px-8">
+        <div class="glass-panel reveal relative overflow-hidden rounded-[28px] p-6 sm:p-9 md:p-11">
+          <div class="pointer-events-none absolute -left-16 -top-24 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" aria-hidden="true"></div>
+          <div class="pointer-events-none absolute -bottom-20 right-1/3 h-52 w-52 rounded-full bg-cyan/10 blur-3xl" aria-hidden="true"></div>
+
+          <div class="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
+            <div>
+              <p class="section-kicker">ارتباط و همکاری</p>
+              <h2 class="mt-2 text-2xl font-extrabold leading-relaxed text-white sm:text-3xl">
+                برای ساختن ایده‌ی بعدی،<br class="hidden sm:block"> آماده‌ام گفتگو کنیم.
+              </h2>
+              <p class="mt-3 max-w-xl text-sm leading-7 text-slate-300">برای همکاری، پرسش درباره پروژه‌ها یا گفت‌وگو درباره بازی‌سازی از راه‌های زیر با من در ارتباط باش.</p>
+
+              <div class="mt-6 flex flex-wrap items-center gap-3">
+                <a class="btn-primary" href="mailto:sinaplex0@gmail.com">
+                  ارسال ایمیل
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16v12H4zM4 7l8 6 8-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                <button id="copy-email" class="btn-secondary" type="button" data-email="sinaplex0@gmail.com">
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5A2.5 2.5 0 0 0 12.5 3h-6A3.5 3.5 0 0 0 3 6.5v6A2.5 2.5 0 0 0 5.5 15" stroke-linecap="round"/></svg>
+                  کپی ایمیل
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2.5 md:max-w-[280px] md:justify-end">
+              <a class="social-link" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer" aria-label="پروفایل Sina Plex در GitHub">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.53v-2.08c-3.1.68-3.76-1.32-3.76-1.32-.5-1.3-1.24-1.65-1.24-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.71 2.62 1.22 3.26.93.1-.72.39-1.22.71-1.5-2.48-.28-5.09-1.24-5.09-5.51 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.1-1.45 3.04-1.15 3.04-1.15.61 1.54.23 2.68.12 2.96.72.78 1.15 1.78 1.15 3.01 0 4.28-2.61 5.22-5.1 5.5.4.35.75 1.03.75 2.08V22c0 .29.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/></svg>
+                GitHub
+              </a>
+              <a class="social-link" href="https://www.youtube.com/@Sina_Plex" target="_blank" rel="noreferrer" aria-label="کانال Sina Plex در YouTube">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.55 3.58 12 3.58 12 3.58s-7.55 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.12c1.85.5 9.4.5 9.4.5s7.55 0 9.4-.5a3 3 0 0 0 2.1-2.12A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.55 15.6V8.4L15.82 12l-6.27 3.6Z"/></svg>
+                YouTube
+              </a>
+              <a class="social-link" href="https://t.me/Sinaplex" target="_blank" rel="noreferrer" aria-label="ارتباط با Sina Plex در Telegram">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 4.3 18.7 20c-.23 1.1-.82 1.36-1.66.85l-4.6-3.39-2.22 2.14c-.25.25-.46.46-.94.46l.34-4.69 8.53-7.7c.37-.33-.08-.52-.57-.19L7.03 14.25l-4.56-1.43c-.99-.31-1.01-.99.21-1.47L20.5 4.1c.82-.3 1.54.2 1.3 1.2Z"/></svg>
+                Telegram
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= فوتر ================= -->
+    <footer class="mx-auto max-w-6xl px-5 pb-8 pt-2 text-xs text-slate-500 sm:px-7 lg:px-8">
+      <div class="flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <span>© <span id="year"></span> <span dir="ltr">Sina Plex</span> — ساخته‌شده با علاقه به بازی‌سازی</span>
+        <a class="transition hover:text-cyan" href="#home">بازگشت به بالا <span aria-hidden="true">↑</span></a>
+      </div>
+    </footer>
   </div>
 
-  <main>
-    <section class="wrap hero" id="home">
-      <div class="hero-copy reveal">
-        <div class="eyebrow"><span class="dot"></span> توسعه‌دهنده بازی و برنامه‌نویس</div>
-        <h1>توسعه بازی با<br><span class="gradient-text">Unity و C#</span></h1>
-        
-        <div class="quick-stats">
-          <div class="stat"><strong>Unity</strong></div>
-          <div class="stat"><strong>C#</strong></div>
-          <div class="stat"><strong>2D / 3D</strong><span>توسعه بازی</span></div>
-        </div>
-      </div>
-      <div class="scene reveal" aria-label="تصویر سه‌بعدی تزئینی">
-        <div class="ring"></div><div class="ring r2"></div>
-        <div class="cube-wrap" role="img" aria-label="مکعب سه‌بعدی مهارت‌ها: C Sharp، Unity، هوش مصنوعی، طراحی دوبعدی و سه‌بعدی، بازی و کدنویسی">
-          <div class="cube-face front">C#</div><div class="cube-face back">UNITY</div>
-          <div class="cube-face right">AI</div><div class="cube-face left">2D / 3D</div>
-          <div class="cube-face top">GAMES</div><div class="cube-face bottom">CODE</div>
-        </div>
-        
-      </div>
-    </section>
-
-    <section class="section wrap" id="about">
-      <div class="section-head reveal">
-        <div><h2>درباره من</h2></div>
-        
-      </div>
-      <div class="about-grid">
-        <article class="glass about-card reveal">
-          <p>من با نام <b class="ltr">Sina Plex</b> فعالیت می‌کنم و تمرکزم روی توسعه بازی با Unity و C# است. تجربه‌ام بیشتر در ساخت بازی‌های دوبعدی، طراحی سیستم‌های گیم‌پلی، پیاده‌سازی رفتار دشمن‌ها و توسعه قابلیت‌های موردنیاز هر پروژه است.</p>
-        </article>
-        <article class="glass about-card reveal" id="skills">
-          <div class="skills">
-            <span class="skill skill-primary">Unity</span><span class="skill skill-primary">C#</span><span class="skill">Python</span><span class="skill">PHP</span><span class="skill">SQL</span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section wrap" id="projects">
-      <div class="section-head reveal">
-        <div><h2>پروژه‌ها</h2></div>
-        
-      </div>
-      <div class="project-grid">
-        <article class="glass project reveal">
-          <div class="project-art"><span class="art-tag">یونیتی · دوبعدی</span><div class="game-icon">♟</div></div>
-          <div class="project-body"><h3>دشمن گشت‌زن</h3><p>نمونه‌ای از ساخت دشمن گشت‌زن در بازی دوبعدی؛ مناسب برای نمایش منطق حرکت و رفتار پایه دشمن.</p><div class="project-foot"><a class="text-link" href="https://github.com/Sinaplex/Unity-Patrol-Enemy" target="_blank" rel="noreferrer">مشاهده در گیت‌هاب ↗</a><span class="project-stack">سی‌شارپ / یونیتی</span></div></div>
-        </article>
-        <article class="glass project reveal">
-          <div class="project-art"><span class="art-tag">پروژه بازی</span><div class="game-icon">⌁</div></div>
-          <div class="project-body"><h3>ماجراجویی در هزارتو</h3><p>بازی ماز با مراحل مختلف، دشمن‌ها، تله‌ها و قابلیت‌های بازیکن. این بخش را با توضیح و تصاویر پروژه خودت کامل کن.</p><div class="project-foot"><a class="text-link" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer">مشاهده پروژه‌ها ↗</a><span class="project-stack">بازی‌سازی</span></div></div>
-        </article>
-        <article class="glass project reveal">
-          <div class="project-art"><span class="art-tag">آنلاین · سه‌بعدی</span><div class="game-icon">◎</div></div>
-          <div class="project-body"><h3>نمونه بازی آنلاین</h3><p>نمونه‌کار چندنفره برای نمایش سیستم شبکه، حرکت بازیکن و هماهنگی وضعیت بازی؛ در صورت انتشار، لینک مستقیم را اضافه کن.</p><div class="project-foot"><a class="text-link" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer">دیدن گیت‌هاب ↗</a><span class="project-stack">یونیتی</span></div></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section wrap" id="contact">
-      <div class="glass contact reveal">
-        <div class="contact-actions">
-          <a class="btn social-github" href="https://github.com/Sinaplex" target="_blank" rel="noreferrer" aria-label="Github">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.53v-2.08c-3.1.68-3.76-1.32-3.76-1.32-.5-1.3-1.24-1.65-1.24-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.71 2.62 1.22 3.26.93.1-.72.39-1.22.71-1.5-2.48-.28-5.09-1.24-5.09-5.51 0-1.22.44-2.22 1.16-3-.12-.28-.5-1.42.11-2.96 0 0 .95-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.1-1.45 3.04-1.15 3.04-1.15.61 1.54.23 2.68.12 2.96.72.78 1.15 1.78 1.15 3.01 0 4.28-2.61 5.22-5.1 5.5.4.35.75 1.03.75 2.08V22c0 .29.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/></svg>
-            <span>Github</span>
-          </a>
-          <a class="btn social-youtube" href="https://www.youtube.com/@Sina_Plex" target="_blank" rel="noreferrer" aria-label="YouTube">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.12C19.55 3.58 12 3.58 12 3.58s-7.55 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.12c1.85.5 9.4.5 9.4.5s7.55 0 9.4-.5a3 3 0 0 0 2.1-2.12A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.55 15.6V8.4L15.82 12l-6.27 3.6Z"/></svg>
-            <span>YouTube</span>
-          </a>
-          <a class="btn social-gmail" id="gmailLink" href="https://mail.google.com/mail/?view=cm&fs=1&to=YOUR_EMAIL@example.com" target="_blank" rel="noreferrer" aria-label="Gmail">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 13l9-6.5"/><path d="M3 6.5V19h18V6.5"/><path d="M3 7l3-2h12l3 2"/></svg>
-            <span>Gmail</span>
-          </a>
-          <a class="btn social-telegram" id="telegramLink" href="https://t.me/YOUR_TELEGRAM_USERNAME" target="_blank" rel="noreferrer" aria-label="Telegram">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M21.8 4.3 18.7 20c-.23 1.1-.82 1.36-1.66.85l-4.6-3.39-2.22 2.14c-.25.25-.46.46-.94.46l.34-4.69 8.53-7.7c.37-.33-.08-.52-.57-.19L7.03 14.25l-4.56-1.43c-.99-.31-1.01-.99.21-1.47L20.5 4.1c.82-.3 1.54.2 1.3 1.2Z"/></svg>
-            <span>Telegram</span>
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-  <footer class="wrap"><div class="footer-inner"><span>© <span id="year"></span> Sina Plex — ساخته‌شده با علاقه به بازی‌سازی</span><a href="#home">بازگشت به بالا ↑</a></div></footer>
+  <!-- دکمه بازگشت به بالا و توست -->
+  <button id="to-top" class="to-top" type="button" aria-label="بازگشت به بالای صفحه">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // برای فعال کردن دکمه ایمیل، آدرس خودت را در خط زیر قرار بده.
-    const contactEmail = "sinaplex0@gmail.com"; // آدرس ایمیل خودت را جایگزین کن
-    const telegramUsername = "Sinaplex"; // نام کاربری تلگرام بدون @
+    /* ---------- سال ---------- */
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    document.getElementById("year").textContent = new Date().getFullYear();
+    /* ---------- منوی موبایل ---------- */
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOpenIcon = document.getElementById('menu-open-icon');
+    const menuCloseIcon = document.getElementById('menu-close-icon');
 
-    // Background particles and a short-lived mouse-light trail (fine pointers only).
+    if (menuToggle && mobileMenu) {
+      const setMenu = (open) => {
+        mobileMenu.classList.toggle('is-open', open);
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? 'بستن منو' : 'باز کردن منو');
+        menuOpenIcon?.classList.toggle('hidden', open);
+        menuCloseIcon?.classList.toggle('hidden', !open);
+      };
+      menuToggle.addEventListener('click', () => {
+        setMenu(menuToggle.getAttribute('aria-expanded') !== 'true');
+      });
+      mobileMenu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setMenu(false);
+      });
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) setMenu(false);
+      }, { passive: true });
+    }
+
+    /* ---------- فیلتر پروژه‌ها ---------- */
+    const filterButtons = [...document.querySelectorAll('[data-filter]')];
+    const projectCards = [...document.querySelectorAll('#project-grid [data-category]')];
+    const projectCount = document.getElementById('project-count');
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+        let visible = 0;
+
+        filterButtons.forEach((item) => {
+          const active = item === button;
+          item.classList.toggle('is-active', active);
+          item.setAttribute('aria-pressed', String(active));
+        });
+
+        projectCards.forEach((card) => {
+          const show = filter === 'all' || card.dataset.category === filter;
+          card.classList.toggle('hidden', !show);
+          if (show) {
+            visible++;
+            card.style.animation = 'none';
+            void card.offsetWidth; // reflow برای اجرای مجدد انیمیشن
+            card.style.animation = 'card-in .45s cubic-bezier(.22,.75,.2,1) both';
+          }
+        });
+
+        if (projectCount) projectCount.textContent = `${visible.toLocaleString('fa-IR')} پروژه`;
+      });
+    });
+
+    /* استایل انیمیشن ورود کارت‌ها (تزریق‌شده) */
+    const styleTag = document.createElement('style');
+    styleTag.textContent = '@keyframes card-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}';
+    document.head.appendChild(styleTag);
+
+    /* ---------- ریویل با IntersectionObserver ---------- */
+    const revealItems = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      revealItems.forEach((item) => revealObserver.observe(item));
+    } else {
+      revealItems.forEach((item) => item.classList.add('is-visible'));
+    }
+
+    /* ---------- اسکرول‌اسپای منو ---------- */
     (() => {
-      const canvas = document.getElementById("ambient-canvas");
-      const ctx = canvas.getContext("2d", { alpha: true });
-      const trailCanvas = document.getElementById("cursor-trail");
-      const trailCtx = trailCanvas.getContext("2d", { alpha: true });
-      const progress = document.querySelector(".scroll-progress");
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-      let w = 0, h = 0, dpr = 1, scrollY = window.scrollY || 0;
-      let mouse = { x: -9999, y: -9999, active: false };
-      let particles = [], trail = [], lastTrailFrame = 0;
-      const MAX_TRAIL_AGE = 680;
+      const links = [...document.querySelectorAll('[data-spy]')];
+      if (!links.length || !('IntersectionObserver' in window)) return;
 
-      function resize() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        w = window.innerWidth; h = window.innerHeight;
-        for (const c of [canvas, trailCanvas]) {
-          c.width = Math.floor(w * dpr); c.height = Math.floor(h * dpr);
-          c.style.width = w + "px"; c.style.height = h + "px";
-        }
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const count = Math.min(w < 600 ? 66 : 145, Math.max(w < 600 ? 44 : 90, Math.floor(w / (w < 600 ? 7 : 9))));
-        particles = Array.from({ length: count }, () => ({
-          x: Math.random() * w, y: Math.random() * h,
-          vx: (Math.random() - .5) * .34, vy: (Math.random() - .5) * .34,
-          r: Math.random() * 1.35 + .75, phase: Math.random() * Math.PI * 2
-        }));
-      }
+      const map = new Map();
+      links.forEach((link) => {
+        const section = document.querySelector(link.getAttribute('href'));
+        if (section) map.set(section, link);
+      });
 
-      function drawParticles() {
-        ctx.clearRect(0, 0, w, h);
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          p.phase += .012;
-          if (!reducedMotion) {
-            p.x += p.vx + Math.sin(p.phase) * .08;
-            p.y += p.vy + Math.cos(p.phase * .7) * .08;
+      const spyObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const link = map.get(entry.target);
+          if (!link) return;
+          if (entry.isIntersecting) {
+            links.forEach((item) => item.classList.remove('is-active'));
+            link.classList.add('is-active');
           }
-          if (mouse.active && finePointer && !reducedMotion) {
-            const dx = p.x - mouse.x, dy = p.y - mouse.y, dist = Math.hypot(dx, dy);
-            if (dist < 125 && dist > .1) {
-              const force = (1 - dist / 125) * .22;
-              p.vx += dx / dist * force; p.vy += dy / dist * force;
-            }
-          }
-          p.vx *= .994; p.vy *= .994;
-          const speed = Math.hypot(p.vx, p.vy);
-          if (speed > .8) { p.vx = p.vx / speed * .8; p.vy = p.vy / speed * .8; }
-          if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
-          if (p.y < -10) p.y = h + 10; if (p.y > h + 10) p.y = -10;
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = i % 4 === 0 ? "rgba(86,224,224,.78)" : "rgba(125,157,255,.72)";
-          ctx.fill();
-          for (let j = i + 1; j < particles.length; j++) {
-            const q = particles[j], dist = Math.hypot(p.x - q.x, p.y - q.y);
-            if (dist < 92) {
-              ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
-              ctx.strokeStyle = `rgba(91,174,232,${(1 - dist / 92) * .19})`;
-              ctx.lineWidth = .65; ctx.stroke();
-            }
-          }
-        }
-        if (!reducedMotion) requestAnimationFrame(drawParticles);
-      }
+        });
+      }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
 
-      function drawTrail(now) {
-        trailCtx.clearRect(0, 0, w, h);
-        trail = trail.filter(point => now - point.time < MAX_TRAIL_AGE);
-        for (let i = 1; i < trail.length; i++) {
-          const a = trail[i - 1], b = trail[i];
-          const alpha = Math.max(0, 1 - (now - b.time) / MAX_TRAIL_AGE);
-          trailCtx.beginPath(); trailCtx.moveTo(a.x, a.y); trailCtx.lineTo(b.x, b.y);
-          trailCtx.lineWidth = (1.2 + alpha * 2.2) * (i / trail.length);
-          trailCtx.lineCap = "round";
-          trailCtx.strokeStyle = `rgba(86,224,224,${alpha * .26})`;
-          trailCtx.shadowBlur = 1.5 * alpha; trailCtx.shadowColor = "#56e0e0";
-          trailCtx.stroke();
-        }
-        trailCtx.shadowBlur = 0;
-        if (mouse.active && trail.length) {
-          trailCtx.beginPath();
-          trailCtx.arc(mouse.x, mouse.y, 1.8, 0, Math.PI * 2);
-          trailCtx.fillStyle = "rgba(86,224,224,.9)";
-          trailCtx.fill();
-        }
-        if (trail.length && now - lastTrailFrame < MAX_TRAIL_AGE + 30) {
-          requestAnimationFrame(drawTrail);
-        } else {
-          lastTrailFrame = 0;
-        }
-      }
-
-      function updateScroll() {
-        scrollY = window.scrollY || 0;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        progress.style.transform = `scaleX(${maxScroll > 0 ? scrollY / maxScroll : 0})`;
-        canvas.style.transform = `translateY(${Math.min(scrollY * -.025, -35)}px)`;
-      }
-
-      if (finePointer && !reducedMotion) {
-        window.addEventListener("pointermove", event => {
-          if (event.pointerType === "touch") return;
-          mouse.x = event.clientX; mouse.y = event.clientY; mouse.active = true;
-          trail.push({ x: event.clientX, y: event.clientY, time: performance.now() });
-          if (trail.length > 36) trail.shift();
-          if (!lastTrailFrame) {
-            lastTrailFrame = performance.now();
-            requestAnimationFrame(drawTrail);
-          }
-        }, { passive: true });
-        document.addEventListener("pointerleave", () => { mouse.active = false; });
-      } else {
-        trailCanvas.style.display = "none";
-      }
-      window.addEventListener("scroll", updateScroll, { passive: true });
-      window.addEventListener("resize", resize);
-      resize(); drawParticles(); updateScroll();
+      map.forEach((_, section) => spyObserver.observe(section));
     })();
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          observer.unobserve(entry.target);
+    /* ---------- نور دنبال‌کننده موس روی پنل‌ها ---------- */
+    (() => {
+      const targets = document.querySelectorAll('.spotlight, .project-card');
+      targets.forEach((el) => {
+        el.addEventListener('pointermove', (event) => {
+          const rect = el.getBoundingClientRect();
+          el.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+          el.style.setProperty('--my', `${event.clientY - rect.top}px`);
+        }, { passive: true });
+      });
+    })();
+
+    /* ---------- کپی ایمیل + توست ---------- */
+    (() => {
+      const copyBtn = document.getElementById('copy-email');
+      const toast = document.getElementById('toast');
+      let toastTimer;
+
+      const showToast = (message) => {
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2400);
+      };
+
+      copyBtn?.addEventListener('click', async () => {
+        const email = copyBtn.dataset.email || '';
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(email);
+          } else {
+            const temp = document.createElement('textarea');
+            temp.value = email;
+            temp.setAttribute('readonly', '');
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+          }
+          showToast('ایمیل کپی شد ✓');
+        } catch {
+          showToast('کپی نشد؛ ایمیل: ' + email);
         }
       });
-    }, { threshold: 0.12 });
-    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    })();
 
-
-    // Keep the cube's CSS rotation independent from pointer movement and hover effects.
-    const scene = document.querySelector(".scene");
-    if (scene && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      scene.addEventListener("mousemove", (event) => {
-        const rect = scene.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - 0.5;
-        const y = (event.clientY - rect.top) / rect.height - 0.5;
-        scene.style.setProperty("--mx", `${x * 10}px`);
-        scene.style.setProperty("--my", `${y * 10}px`);
-      }, { passive: true });
-      scene.addEventListener("mouseleave", () => {
-        scene.style.setProperty("--mx", "0px");
-        scene.style.setProperty("--my", "0px");
+    /* ---------- دکمه بازگشت به بالا ---------- */
+    (() => {
+      const toTop = document.getElementById('to-top');
+      if (!toTop) return;
+      const toggle = () => toTop.classList.toggle('is-visible', window.scrollY > 560);
+      window.addEventListener('scroll', toggle, { passive: true });
+      toTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       });
-    }
+      toggle();
+    })();
 
-    // Update contact destinations from the settings above.
-    const gmailLink = document.getElementById("gmailLink");
-    const telegramLink = document.getElementById("telegramLink");
-    if (gmailLink && contactEmail !== "YOUR_EMAIL@example.com") {
-      gmailLink.href = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(contactEmail);
-    }
-    if (telegramLink && telegramUsername !== "YOUR_TELEGRAM_USERNAME") {
-      telegramLink.href = "https://t.me/" + encodeURIComponent(telegramUsername.replace(/^@/, ""));
-    }
+    /* ---------- ذرات محیطی + نوار پیشرفت ---------- */
+    (() => {
+      const canvas = document.getElementById('ambient-canvas');
+      const context = canvas?.getContext('2d', { alpha: true });
+      const progress = document.querySelector('.scroll-progress');
+      if (!canvas || !context) return;
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let particles = [];
+      let frame = 0;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const count = Math.min(width < 600 ? 42 : 84, Math.max(width < 600 ? 26 : 52, Math.floor(width / (width < 600 ? 10 : 15))));
+        particles = Array.from({ length: count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: (Math.random() - 0.5) * 0.25,
+          radius: Math.random() * 1.1 + 0.55,
+          phase: Math.random() * Math.PI * 2
+        }));
+        draw();
+      }
+
+      function draw() {
+        context.clearRect(0, 0, width, height);
+
+        particles.forEach((particle, index) => {
+          particle.phase += 0.01;
+          if (!reducedMotion) {
+            particle.x += particle.vx + Math.sin(particle.phase) * 0.045;
+            particle.y += particle.vy + Math.cos(particle.phase * 0.7) * 0.045;
+          }
+          if (particle.x < -8) particle.x = width + 8;
+          if (particle.x > width + 8) particle.x = -8;
+          if (particle.y < -8) particle.y = height + 8;
+          if (particle.y > height + 8) particle.y = -8;
+
+          context.beginPath();
+          context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+          context.fillStyle = index % 4 === 0 ? 'rgba(86,224,224,.7)' : 'rgba(125,157,255,.52)';
+          context.fill();
+
+          for (let otherIndex = index + 1; otherIndex < particles.length; otherIndex++) {
+            const other = particles[otherIndex];
+            const distance = Math.hypot(particle.x - other.x, particle.y - other.y);
+            if (distance < 86) {
+              context.beginPath();
+              context.moveTo(particle.x, particle.y);
+              context.lineTo(other.x, other.y);
+              context.strokeStyle = `rgba(91,174,232,${(1 - distance / 86) * 0.12})`;
+              context.lineWidth = 0.6;
+              context.stroke();
+            }
+          }
+        });
+
+        if (!reducedMotion && document.visibilityState === 'visible') frame = requestAnimationFrame(draw);
+      }
+
+      function updateProgress() {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (progress) progress.style.transform = `scaleX(${maxScroll > 0 ? Math.min(window.scrollY / maxScroll, 1) : 0})`;
+      }
+
+      window.addEventListener('resize', resize, { passive: true });
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') cancelAnimationFrame(frame);
+        else if (!reducedMotion) draw();
+      });
+
+      resize();
+      updateProgress();
+    })();
   </script>
 </body>
 </html>
